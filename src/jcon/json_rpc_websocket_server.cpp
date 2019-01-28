@@ -77,7 +77,7 @@ void JsonRpcWebSocketServer::newConnection()
                 this, &JsonRpcWebSocketServer::disconnectClient);
 
         connect(endpoint.get(), &JsonRpcEndpoint::jsonObjectReceived,
-                this, &JsonRpcServer::jsonRequestReceived);
+                this, &JsonRpcServer::jsonRequestObjectReceived);
 
         m_client_endpoints[web_socket] = endpoint;
         emit(clientConnected(web_socket));

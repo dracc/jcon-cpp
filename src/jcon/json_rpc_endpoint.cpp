@@ -6,6 +6,7 @@
 #include <QJsonObject>
 #include <QTcpSocket>
 #include <QUrl>
+#include <QJsonArray>
 
 namespace jcon {
 
@@ -135,9 +136,7 @@ QByteArray JsonRpcEndpoint::processBuffer(const QByteArray& buffer,
                                           QObject* socket)
 {
     QByteArray buf(buffer);
-
-    JCON_ASSERT(buf[0] == '{');
-
+    JCON_ASSERT(buf[0] == '{' || buf[0] == '[');
     bool in_string = false;
     int brace_nesting_level = 0;
     QByteArray json_obj;
@@ -150,19 +149,23 @@ QByteArray JsonRpcEndpoint::processBuffer(const QByteArray& buffer,
             in_string = !in_string;
 
         if (!in_string) {
-            if (curr_ch == '{')
+            if (curr_ch == '{' || curr_ch == '[') {
                 ++brace_nesting_level;
+            }
 
-            if (curr_ch == '}') {
+            if (curr_ch == '}' || curr_ch == ']') {
                 --brace_nesting_level;
                 JCON_ASSERT(brace_nesting_level >= 0);
 
                 if (brace_nesting_level == 0) {
-                    auto doc = QJsonDocument::fromJson(buf.left(i));
+                    QJsonDocument doc = QJsonDocument::fromJson(buf.left(i));
                     JCON_ASSERT(!doc.isNull());
-                    JCON_ASSERT(doc.isObject());
-                    if (doc.isObject())
+                    if (doc.isArray()){
+                        emit jsonArrayReceived(doc.array(), socket);
+                    }
+                    else if (doc.isObject()){
                         emit jsonObjectReceived(doc.object(), socket);
+                    }
                     buf = chopLeft(buf, i);
                     i = 0;
                     continue;

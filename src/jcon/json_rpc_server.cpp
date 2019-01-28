@@ -51,7 +51,35 @@ void JsonRpcServer::registerServices(const ServiceMap& services,
     m_ns_separator = ns_separator;
 }
 
-void JsonRpcServer::jsonRequestReceived(const QJsonObject& request,
+void JsonRpcServer::jsonRequestArrayReceived(const QJsonArray &request,
+                                             QObject *socket)
+{
+    for(QJsonValue qjo: request){
+        QJsonObject tmpObj = qjo.toObject();
+
+        if (tmpObj.value("jsonrpc").toString() != "2.0") {
+            logError("invalid protocol tag");
+            return;
+        }
+
+        QString method_name = tmpObj.value("method").toString();
+        if (method_name.isEmpty()) {
+            logError("no method present in request");
+        }
+
+        QVariant params = tmpObj.value("params").toVariant();
+        QString request_id = tmpObj.value("id").toVariant().toString();
+
+        QVariant return_value;
+        if (!dispatch(method_name, params, request_id, return_value)){
+            auto msg = QString("method '%1' not found, check name and " +
+                               "parameter types.").arg(method_name);
+            logError(msg);
+        }
+    }
+}
+
+void JsonRpcServer::jsonRequestObjectReceived(const QJsonObject& request,
                                         QObject* socket)
 {
     JCON_ASSERT(request.value("jsonrpc").toString() == "2.0");

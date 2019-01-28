@@ -44,6 +44,12 @@ public:
 
 signals:
     /**
+     * @brief Emitted for every JSON array received.
+     * @param[in] arr The JSON array received.
+     * @param[in] sender The socket identifier (e.g. a QTcpSocket*).
+     */
+    void jsonArrayReceived(const QJsonArray& arr, QObject* sender);
+    /**
      * Emitted for every JSON object received.
      *
      * @param[in] obj The JSON object received.

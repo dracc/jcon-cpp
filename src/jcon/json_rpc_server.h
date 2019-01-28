@@ -55,7 +55,8 @@ signals:
     void socketError(QObject* socket, QAbstractSocket::SocketError error);
 
 public slots:
-    void jsonRequestReceived(const QJsonObject& request, QObject* socket);
+    void jsonRequestArrayReceived(const QJsonArray& request, QObject* socket);
+    void jsonRequestObjectReceived(const QJsonObject& request, QObject* socket);
 
 protected slots:
     virtual void newConnection() = 0;
